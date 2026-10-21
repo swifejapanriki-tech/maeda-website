@@ -77,32 +77,38 @@
   var form = doc.getElementById('contact-form');
   if (!form) return;
 
-  var PHONE_TEXT = '070-8987-9009';
-  var PHONE_LINK = '<a href="tel:07089879009">' + PHONE_TEXT + '</a>';
   var statusEl = doc.getElementById('form-status');
   var dateWrap = doc.getElementById('schedule-date-wrap');
+  var visitWrap = doc.getElementById('visit-wrap');
   var urgentNote = doc.getElementById('urgent-note');
+  var urgentHint = doc.getElementById('urgent-hint');
   var submitBtn = form.querySelector('button[type="submit"]');
 
   var f = {
     name: doc.getElementById('f-name'),
     email: doc.getElementById('f-email'),
     tel: doc.getElementById('f-tel'),
+    visit: doc.getElementById('f-visit'),
     consent: doc.getElementById('f-consent')
   };
   var errorEl = {
     name: doc.getElementById('e-name'),
     contact: doc.getElementById('e-contact'),
     type: doc.getElementById('e-type'),
+    visit: doc.getElementById('e-visit'),
     consent: doc.getElementById('e-consent')
   };
 
-  /* 条件表示：調査日程の入力欄／緊急時のお電話案内 */
+  /* 条件表示：税務調査の日程の入力欄／訪問先のご住所／緊急時のお電話案内 */
   function syncConditional() {
-    var schedule = form.querySelector('input[name="schedule"]:checked');
-    dateWrap.hidden = !(schedule && schedule.value === '調査の日程が決まっている');
-    var urgency = form.querySelector('input[name="urgency"]:checked');
+    var schedule = form.querySelector('input[name="税務調査の日程"]:checked');
+    dateWrap.hidden = !(schedule && schedule.value === '税務調査の日程が決まっている');
+    var method = form.querySelector('input[name="ご希望の相談方法"]:checked');
+    visitWrap.hidden = !(method && method.value.indexOf('訪問') === 0);
+    var urgency = form.querySelector('input[name="緊急性"]:checked');
     urgentNote.hidden = !(urgency && urgency.value.indexOf('緊急') === 0);
+    // 緊急を選んだときは、より詳しいお電話の案内（上の囲み）を出すので、短い注記は隠す
+    urgentHint.hidden = !urgentNote.hidden;
   }
   form.addEventListener('change', syncConditional);
   syncConditional();
@@ -114,7 +120,7 @@
   }
   function clearErrors() {
     Object.keys(errorEl).forEach(function (k) { errorEl[k].textContent = ''; });
-    [f.name, f.email, f.tel].forEach(function (el) { el.removeAttribute('aria-invalid'); });
+    [f.name, f.email, f.tel, f.visit].forEach(function (el) { el.removeAttribute('aria-invalid'); });
     statusEl.textContent = '';
     statusEl.className = 'form__status';
   }
@@ -145,9 +151,15 @@
       }
     }
 
-    if (!form.querySelector('input[name="type"]:checked')) {
+    if (!form.querySelector('input[name="ご相談の種類"]:checked')) {
       setError('type', 'ご相談の種類を選択してください。');
-      mark(form.querySelector('input[name="type"]'));
+      mark(form.querySelector('input[name="ご相談の種類"]'));
+    }
+
+    // 訪問をご希望の場合だけ、訪問先のご住所が必要
+    if (!visitWrap.hidden && !f.visit.value.trim()) {
+      setError('visit', '訪問をご希望の場合は、訪問先のご住所をご入力ください。', [f.visit]);
+      mark(f.visit);
     }
 
     if (!f.consent.checked) {
@@ -156,21 +168,24 @@
     }
     return firstInvalid;
   }
-  [f.name, f.email, f.tel].forEach(function (el) {
+  [f.name, f.email, f.tel, f.visit].forEach(function (el) {
     el.addEventListener('input', function () { el.removeAttribute('aria-invalid'); });
   });
 
-  function showStatus(kind, html) {
-    statusEl.className = 'form__status is-' + kind;
-    statusEl.innerHTML = html;
-    statusEl.focus({ preventScroll: true });
-    statusEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
-  }
   function setBusy(busy) {
     submitBtn.disabled = busy;
     submitBtn.setAttribute('aria-busy', String(busy));
   }
+  // 送信時に送信対象から外した欄（下の submit 処理を参照）
+  var omitted = [];
+  // 「戻る」で戻ってきたときに、送信ボタンや入力欄が押せないままにならないように
+  window.addEventListener('pageshow', function () {
+    setBusy(false);
+    omitted.forEach(function (el) { el.disabled = false; });
+    omitted = [];
+  });
 
+  /* 送信：入力チェックを通ったら、通常のフォーム送信（POST）でSSGformへ送る */
   form.addEventListener('submit', function (e) {
     e.preventDefault();
     clearErrors();
@@ -181,29 +196,16 @@
       return;
     }
     // スパム対策（隠し入力欄に値があれば何もしない）
-    if (form.elements.website && form.elements.website.value) return;
+    var trap = form.querySelector('.hp input');
+    if (trap && trap.value) return;
 
-    var endpoint = (form.getAttribute('data-endpoint') || '').trim();
-    if (!endpoint) {
-      // 送信先が未設定のまま公開してしまっても、利用者が「送れた」と誤解しないようにしています
-      showStatus('error',
-        'ただいま、このフォームからは送信できません。お手数ですが、お電話（' + PHONE_LINK + '）でご連絡ください。');
-      return;
-    }
+    // 通知メールに空の項目が混ざらないよう、不要な欄は送信対象から外す
+    var dateInput = doc.getElementById('f-schedule-date');
+    [trap, dateWrap.hidden && dateInput, visitWrap.hidden && f.visit].forEach(function (el) {
+      if (el) { el.disabled = true; omitted.push(el); }
+    });
 
     setBusy(true);
-    fetch(endpoint, { method: 'POST', body: new FormData(form), headers: { 'Accept': 'application/json' } })
-      .then(function (res) {
-        if (!res.ok) throw new Error('HTTP ' + res.status);
-        form.reset();
-        syncConditional();
-        showStatus('success',
-          '送信が完了しました。お問い合わせありがとうございます。内容を確認のうえ、改めてご連絡いたします。お急ぎの場合は、お電話（' + PHONE_LINK + '）へご連絡ください。');
-      })
-      .catch(function () {
-        showStatus('error',
-          '送信できませんでした。お手数ですが、時間をおいて再度お試しいただくか、お電話（' + PHONE_LINK + '）でご連絡ください。');
-      })
-      .then(function () { setBusy(false); });
+    form.submit();
   });
 })();

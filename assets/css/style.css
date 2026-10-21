@@ -443,6 +443,13 @@ button, input, textarea { font: inherit; color: inherit; letter-spacing: inherit
 }
 .alert-card__tel { margin-top: 28px; }
 .alert-card__sub { margin-top: 14px; font-size: 13.5px; line-height: 1.85; }
+/* 緊急時の対応・費用についての注記 */
+.alert-card__note {
+  margin-top: 18px; padding: 14px 18px; background: #fff;
+  border: 1px solid var(--c-alert-line); border-left: 4px solid var(--c-alert); border-radius: var(--radius-s);
+  font-size: 14.5px; line-height: 1.9;
+}
+.alert-card__note a { font-weight: 700; color: var(--c-alert-ink); }
 .alert-card__list { margin-top: clamp(28px, 4vw, 40px); padding-top: clamp(24px, 3.4vw, 32px); border-top: 1px dashed var(--c-alert-line); }
 .alert-card__list-lead { font-weight: 500; }
 .check-grid { display: grid; gap: 12px; margin-top: 18px; }
@@ -545,6 +552,16 @@ button, input, textarea { font: inherit; color: inherit; letter-spacing: inherit
 }
 .message__sign-name::after { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 2px; background: var(--c-gold); }
 .prose .message__sign + p { margin-top: 2em; }
+/* 初回無料のご案内（ボタンの直前） */
+.prose .free-note {
+  padding: 16px 22px; background: var(--c-bg-soft);
+  border-left: 3px solid var(--c-gold); border-radius: var(--radius-s);
+}
+.prose .free-note__main {
+  display: block; font-family: var(--font-serif); font-weight: 700;
+  font-size: clamp(17px, 2.1vw, 19px); line-height: 1.7; letter-spacing: .06em; color: var(--c-heading-accent);
+}
+.free-note__sub { display: block; margin-top: 4px; font-size: 13px; line-height: 1.8; color: var(--c-ink-soft); }
 
 /* Features */
 /* 3列は1200px以上（カードの幅が足りるときだけ）。それより狭い画面では1列にして、説明文が途中で折り返さないようにする */
@@ -573,6 +590,11 @@ button, input, textarea { font: inherit; color: inherit; letter-spacing: inherit
 .feature__title::after { content: ""; display: block; width: 28px; height: 2px; margin: 12px auto 0; border-radius: 2px; background: var(--c-gold); }
 /* 説明文：左揃えのまま、いちばん長い行の幅に合わせてカードの中央に置く（改行位置のそろった読みやすい塊になる） */
 .feature__text { width: fit-content; max-width: 100%; margin-inline: auto; font-size: 15px; line-height: 1.9; color: var(--c-ink); text-align: left; }
+.feature__text p { line-height: 1.9; }
+/* 特長1：強みを箇条書きで見せる */
+.feature__points { margin: 6px 0; }
+.feature__points li { position: relative; padding-left: 1.2em; font-weight: 700; line-height: 1.9; color: var(--c-ink-strong); }
+.feature__points li::before { content: ""; position: absolute; left: .15em; top: .88em; width: 6px; height: 6px; border-radius: 50%; background: var(--c-gold); }
 
 /* Link cards（税務調査／業務内容への導線） */
 .link-cards { display: grid; gap: 36px; }
@@ -785,7 +807,11 @@ button, input, textarea { font: inherit; color: inherit; letter-spacing: inherit
 
 /* 業務内容 */
 .service-cards { display: grid; gap: 24px; }
-@media (min-width: 768px) { .service-cards { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 28px; } }
+@media (min-width: 768px) {
+  .service-cards { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 28px; }
+  /* カードが奇数枚のとき、最後の1枚は2列目に空きを作らず、中央に置く */
+  .service-cards .service-card:last-child:nth-child(odd) { grid-column: 1 / -1; justify-self: center; width: calc((100% - 28px) / 2); }
+}
 .service-card {
   padding: clamp(28px, 4vw, 44px);
   background: var(--c-surface); border: 1px solid var(--c-line); border-radius: var(--radius-l); box-shadow: var(--shadow-s);
@@ -1025,7 +1051,8 @@ button, input, textarea { font: inherit; color: inherit; letter-spacing: inherit
   /* トップ：ヒーロー */
   .hero { padding-top: 6px; }
   .hero__media { min-height: 130px; }
-  .hero__inner { width: min(100% - var(--m-gutter) * 2, 700px); margin-top: -36px; }
+  /* 写真とカードは重ねず、上下に並べる（カード上端の文字が写真に透けて見えないように） */
+  .hero__inner { width: min(100% - var(--m-gutter) * 2, 700px); margin-top: 10px; }
   .hero__card { padding: 22px var(--m-card) 20px; }
   .hero__card::before { inset: 6px; }
   .hero__eyebrow { gap: 10px; letter-spacing: .14em; }
@@ -1048,6 +1075,9 @@ button, input, textarea { font: inherit; color: inherit; letter-spacing: inherit
   .message__sign-role { font-size: 13px; }
   .message__sign-name { font-size: 22px; letter-spacing: .24em; }
   .prose .message__sign + p { margin-top: 1.4em; }
+  .prose .free-note { padding: 12px 14px; }
+  .prose .free-note__main { font-size: 15px; }
+  .free-note__sub { font-size: 12px; }
 
   /* トップ：特長 */
   .features__grid { gap: 36px; }
@@ -1064,6 +1094,8 @@ button, input, textarea { font: inherit; color: inherit; letter-spacing: inherit
   .link-card__en { font-size: 17px; }
   .link-card__title { font-size: 19px; letter-spacing: .08em; }
   .link-card__text { margin-bottom: 6px; }
+  /* 「税務調査について詳しく見る」が360px幅で1文字だけ折り返さないよう、少しだけ詰める */
+  .link-card__body .btn { padding-inline: 1.2em; font-size: 14px; letter-spacing: .06em; }
 
   /* トップ：事務所案内 */
   .office__about { gap: 28px; margin-bottom: 36px; }
@@ -1117,6 +1149,7 @@ button, input, textarea { font: inherit; color: inherit; letter-spacing: inherit
   .alert-card__title { font-size: 18px; line-height: 1.55; }
   .alert-card__tel { margin-top: 18px; }
   .alert-card__sub { margin-top: 10px; }
+  .alert-card__note { margin-top: 12px; padding: 10px 12px; font-size: 13px; line-height: 1.85; }
   .alert-card__list { margin-top: 18px; padding-top: 16px; }
   .check-grid { gap: 8px; margin-top: 12px; }
   .check-grid li { gap: 10px; padding: 10px 14px; }
