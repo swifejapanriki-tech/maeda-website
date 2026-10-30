@@ -1096,6 +1096,8 @@ button, input, textarea { font: inherit; color: inherit; letter-spacing: inherit
   .link-card__text { margin-bottom: 6px; }
   /* 「税務調査について詳しく見る」が360px幅で1文字だけ折り返さないよう、少しだけ詰める */
   .link-card__body .btn { padding-inline: 1.2em; font-size: 14px; letter-spacing: .06em; }
+  /* 希望の位置で改行した行が、幅360pxのスマホでも1行に収まるよう、字間をほんの少し（0.01em）詰める */
+  .sp-tight { letter-spacing: -.01em; }
 
   /* トップ：事務所案内 */
   .office__about { gap: 28px; margin-bottom: 36px; }
@@ -1113,7 +1115,7 @@ button, input, textarea { font: inherit; color: inherit; letter-spacing: inherit
   .cta-band::before { width: 200px; height: 200px; left: -80px; top: -90px; }
   .cta-band::after { width: 160px; height: 160px; right: -60px; bottom: -80px; }
   .cta-band__title { font-size: 19px; line-height: 1.65; }
-  .cta-band__text { margin-top: 8px; text-wrap: balance; }
+  .cta-band__text { margin-top: 8px; }
   .cta-band__actions { flex-direction: column; gap: 10px; margin-top: 20px; }
   .cta-band__note { margin-top: 16px; }
 
@@ -1182,7 +1184,8 @@ button, input, textarea { font: inherit; color: inherit; letter-spacing: inherit
   .service-card__icon { width: 52px; height: 52px; margin-bottom: 10px; }
   .service-card__icon .icon--xl { width: 30px; height: 30px; }
   .service-card__title { margin-bottom: 8px; font-size: 18px; }
-  .tags { gap: 6px; margin-top: 12px; }
+  /* 税目のタグは、どのスマホでも「3つ＋2つ」の2段にそろえる */
+  .tags { display: grid; grid-template-columns: repeat(3, max-content); gap: 6px; margin-top: 12px; }
   .tags li { padding: 0 12px; }
   .panel { padding: 30px var(--m-card) 20px; }
   .panel::before { left: 14px; font-size: 64px; }
@@ -1218,6 +1221,11 @@ button, input, textarea { font: inherit; color: inherit; letter-spacing: inherit
   .form__consent { margin-top: 18px; }
   .form__submit { margin-top: 18px; }
   .form__status { margin-top: 16px; }
+}
+/* 幅360〜374pxのスマホだけ：23文字の1行（税務調査ページの赤囲み「事業所を訪問することがあります（無予告調査）。」）を
+   希望どおり1行に収めるため、その行だけ文字を0.5px小さくする（375px以上は通常の大きさのまま） */
+@media (min-width: 360px) and (max-width: 374px) {
+  .sp-fit { font-size: 12.5px; }
 }
 /* 背の低いスマホ：写真を確保してファーストビューを1画面に収めるため、補足の2行を省く */
 @media (max-width: 599px) and (max-height: 700px) {
